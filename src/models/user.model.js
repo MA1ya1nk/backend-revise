@@ -18,7 +18,7 @@ const userSchema = mongoose.Schema({
        trim: true,
        index: true
     },
-    fulName: {
+    fullName: {
         type: String,
         required: true,
         trim: true,
@@ -46,12 +46,23 @@ const userSchema = mongoose.Schema({
     }
 }, {timestamps: true})
 
-userSchema.pre("save", async function (next) {      // here we dont use callback fun bcoz this keyword cant be used and we cant access user schema
-    if(!this.isModifies("password")) return next();
+// userSchema.pre("save", async function (next) {      // here we dont use callback fun bcoz this keyword cant be used and we cant access user schema
+//     if(!this.isModifies("password")) return next();
 
-     this.password = await bcrypt.hash(this.password, 10) // 
-     next()
-}) 
+//      this.password = await bcrypt.hash(this.password, 10) // 
+//      next()
+// }) 
+
+userSchema.pre("save", async function () {
+  // if password field is not modified, skip hashing
+  if (!this.isModified("password")) return ;
+
+  // hash password
+  this.password = await bcrypt.hash(this.password, 10);
+
+});
+
+
 // mongoose also provide method just like middleware
 
 userSchema.methods.isPasswordCorrect = async function(password){

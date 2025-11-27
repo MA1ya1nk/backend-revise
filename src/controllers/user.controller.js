@@ -20,7 +20,7 @@ const registerUser = asyncHandler( async (req, res) => {
    }
 
    // 3. check if user already exist
-   const existedUser = User.findOne({
+   const existedUser = await User.findOne({
     $or: [{username}, {email}]  // return if anything among username or email exist
    })
    
@@ -32,7 +32,12 @@ const registerUser = asyncHandler( async (req, res) => {
    // middlewaare even add data in res.body
    
   const avatarLocalPath = req.files?.avatar[0]?.path // local file path
-  const coverImageLocalPath = req.files?.coverImage[0]?.path;
+  // const coverImageLocalPath = req.files?.coverImage[0]?.path;  // re.file send data in [{},{}] form
+
+  let coverImageLocalPath
+  if(req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0)
+     coverImageLocalPath = req.files.coverImage[0].path
+
   if(!avatarLocalPath) throw new ApiError(400, "Avatar file required")
 
   // 5.  upload data on cloudinary
