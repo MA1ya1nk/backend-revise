@@ -8,7 +8,7 @@ dotenv.config({
 
 connectDB()
 .then( () => {
-    app.listen( process.env.PORT || 8000, () => {
+    app.listen( process.env.PORT || 8000, () => { // here now index is connected with app
         console.log(`server is running at port : ${process.env.PORT}`)
     })
 })

@@ -5,7 +5,7 @@ const storage = multer.diskStorage({
     cb(null, "./public/temp")
   },
   filename: function (req, file, cb) { // req has json data etc but file has files cb is callback
-    cb(null, file.originalname) // here file.originalname is file name in local you can even change it 
+    cb(null, file.originalname) // here file.originalname is file name in local you can even change it. ypu can even change file name to avoid clash of same name
   }
 })
 

@@ -25,11 +25,11 @@ const userSchema = mongoose.Schema({
         index: true
     },
     avatar: {
-       type: String, 
+       type: String, // cloudinary
        required: true
     },
     coverImage: {
-        type: String,
+        type: String,  // cloudinary
     },
     watchHistory: [
         {
@@ -55,7 +55,7 @@ const userSchema = mongoose.Schema({
 
 userSchema.pre("save", async function () {
   // if password field is not modified, skip hashing
-  if (!this.isModified("password")) return ;
+  if (!this.isModified("password")) return ; // isModified is a method
 
   // hash password
   this.password = await bcrypt.hash(this.password, 10);
@@ -64,7 +64,7 @@ userSchema.pre("save", async function () {
 
 
 // mongoose also provide method just like middleware
-
+// dcrypting the passwpord
 userSchema.methods.isPasswordCorrect = async function(password){
     return await bcrypt.compare(password, this.password)
 }
@@ -86,7 +86,7 @@ userSchema.methods.generateAccessToken = function(){
 }
 
 userSchema.methods.generateRefreshToken = function(){
-    return jwt,sign(
+    return jwt.sign(
         {
             _id: this._id
         },
