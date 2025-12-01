@@ -4,18 +4,19 @@ import { User } from "../models/user.model.js";
 import { uploadFiletoCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken"
+import mongoose from "mongoose";
 
 const generateAccessAndRefreshToken = async (userId) => {
   try{
     const user = await User.findOne(userId)
     const accessToken = user.generateAccessToken()
-    const refreshToken = user.generateRefreshToken()
+    const refToken = user.generateRefreshToken()
 
     // adding refreshtoken in user
-    user.refreshToken = refreshToken
+    user.refreshToken = refToken
     await user.save({validateBeforeSave: false})  //  here if save click so through error that username etc field are required so use {} in save() 
 
-    return {refreshToken, accessToken}
+    return {refToken, accessToken}
 
   } catch (error){
     throw new ApiError(500, "something went wrong while generating refresh and access token")
@@ -150,8 +151,8 @@ const logoutUser = asyncHandler( async(req, res) => {
      await User.findByIdAndUpdate(
         req.user._id,  // find by this
         {
-          $set: {  // update by this
-            refreshToken: undefined
+          $unset: {  // update by this
+            refreshToken: 1
           }
         },{
           new: true
@@ -179,13 +180,14 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     }
 
     try {
+      console.log("trying")
         const decodedToken = jwt.verify(
             incomingRefreshToken,
             process.env.REFRESH_TOKEN_SECRET
         )
     
         const user = await User.findById(decodedToken?._id)
-    
+        console.log("user found" );
         if (!user) {
             throw new ApiError(401, "Invalid refresh token")
         }
@@ -244,7 +246,7 @@ const changePassword = asyncHandler( async(req,res) => {
 const getCurrentUser = asyncHandler( async(req, res) => {
   return res
   .status(200)
-  .json(200, req.user, "current user fetched successfully")
+  .json(new ApiResponse(200, req.user, "current user fetched successfully"))
 })
 
 const updateUserDetail = asyncHandler( async(req, res) => {
@@ -265,7 +267,7 @@ const updateUserDetail = asyncHandler( async(req, res) => {
 
   return res
   .status(200)
-  .json(ApiResponse(200, user, "Details updated sucessfully"))
+  .json(new ApiResponse(200, user, "Details updated sucessfully"))
 })
 
 // in production file updation method is always in another method
@@ -279,7 +281,7 @@ const updateUserAvatar = asyncHandler(async(req, res) => {
 
     //TODO: delete old image - assignment
 
-    const avatar = await uploadOnCloudinary(avatarLocalPath)
+    const avatar = await uploadFiletoCloudinary(avatarLocalPath)
 
     if (!avatar.url) {
         throw new ApiError(400, "Error while uploading on avatar")
@@ -313,7 +315,7 @@ const updateUserCoverImage = asyncHandler(async(req, res) => {
     //TODO: delete old image - assignment
 
 
-    const coverImage = await uploadOnCloudinary(coverImageLocalPath)
+    const coverImage = await uploadFiletoCloudinary(coverImageLocalPath)
 
     if (!coverImage.url) {
         throw new ApiError(400, "Error while uploading on avatar")
