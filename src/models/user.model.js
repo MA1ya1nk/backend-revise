@@ -10,7 +10,7 @@ const userSchema = mongoose.Schema({
         unique: true,
         lowecase: true,
         trim: true,
-        index: true  //  if you want it in serching field
+        index: true  //  if you want it in serching field of database basically you want database to use this field as searching index
     },
     email: {
        type: String,
@@ -70,7 +70,7 @@ userSchema.methods.isPasswordCorrect = async function(password){
 }
 
 userSchema.methods.generateAccessToken = function(){
-    return jwt.sign(
+    return jwt.sign(  // this generate token
         {
             _id: this._id, // mongodb id
             email: this.email,

@@ -37,5 +37,5 @@ const videoSchema = mongoose.Schema({
     
 }, {timestamps: true})
 
-videoSchema.plugin(mongooseAggregatePaginate)  // agregation pipeline
+videoSchema.plugin(mongooseAggregatePaginate)  // agregation pipeline we can now write complex(aggregation) queries
 export const Video = mongoose.model("Video", videoSchema)
