@@ -8,15 +8,15 @@ import mongoose from "mongoose";
 
 const generateAccessAndRefreshToken = async (userId) => {
   try{
-    const user = await User.findOne(userId)
+    const user = await User.findById(userId)
     const accessToken = user.generateAccessToken()
-    const refToken = user.generateRefreshToken()
+    const refreshToken = user.generateRefreshToken()
 
     // adding refreshtoken in user
-    user.refreshToken = refToken
+    user.refreshToken = refreshToken
     await user.save({validateBeforeSave: false})  //  here if save click so through error that username etc field are required so use {} in save() 
 
-    return {refToken, accessToken}
+    return {accessToken, refreshToken}
 
   } catch (error){
     throw new ApiError(500, "something went wrong while generating refresh and access token")
@@ -149,7 +149,7 @@ const logoutUser = asyncHandler( async(req, res) => {
      // due to ading cookie-parser as a midleware we are able to aaccess an object to both req and res that's why we didres.cookie(refreshToken)
      
      await User.findByIdAndUpdate(
-        req.user._id,  // find by this
+        req.user?._id,  // find by this
         {
           $unset: {  // update by this
             refreshToken: 1
@@ -174,18 +174,21 @@ const logoutUser = asyncHandler( async(req, res) => {
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
     const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken
-
+  console.log("started")
     if (!incomingRefreshToken) {
         throw new ApiError(401, "unauthorized request")
     }
 
     try {
-      console.log("trying")
+      console.log("started try block")
+       console.log(process.env.REFRESH_TOKEN_SECRET, incomingRefreshToken)
         const decodedToken = jwt.verify(
             incomingRefreshToken,
             process.env.REFRESH_TOKEN_SECRET
         )
     
+
+    console.log("jwt verified")
         const user = await User.findById(decodedToken?._id)
         console.log("user found" );
         if (!user) {
@@ -196,22 +199,25 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
             throw new ApiError(401, "Refresh token is expired or used")
             
         }
+        console.log("refresh token matched");
     
         const options = {
             httpOnly: true,
             secure: true
         }
     
-        const {accessToken, newRefreshToken} = await generateAccessAndRefereshTokens(user._id)
+        const {accessToken, refreshToken} = await generateAccessAndRefreshToken(user._id)
     
+      console.log("new tokens generated");
+
         return res
         .status(200)
         .cookie("accessToken", accessToken, options)
-        .cookie("refreshToken", newRefreshToken, options)
+        .cookie("refreshToken", refreshToken, options)
         .json(
             new ApiResponse(
                 200, 
-                {accessToken, refreshToken: newRefreshToken},
+                {accessToken, refreshToken: refreshToken},
                 "Access token refreshed"
             )
         )

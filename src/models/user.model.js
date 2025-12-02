@@ -41,8 +41,8 @@ const userSchema = mongoose.Schema({
         type: String,  // data store in string(encrypted) format
         required: [true, 'Password is required']
     },
-    refreshTokens: {
-        type: String
+    refreshToken: {
+        type: String,
     }
 }, {timestamps: true})
 
@@ -90,7 +90,7 @@ userSchema.methods.generateRefreshToken = function(){
         {
             _id: this._id
         },
-        process.env.ACCESS_TOKEN_EXPIRY,
+        process.env.REFRESH_TOKEN_SECRET,
         {
             expiresIn: process.env.REFRESH_TOKEN_EXPIRY
         }
