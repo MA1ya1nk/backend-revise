@@ -4,7 +4,7 @@ import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2";
 const videoSchema = mongoose.Schema({
     videoFile: {
         type: String, // from cloudinary
-        required: trusted,
+        required: true,
     },
     thumbnail: {
         type: String, // cloudinary

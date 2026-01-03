@@ -158,7 +158,6 @@ const logoutUser = asyncHandler( async(req, res) => {
           new: true
         }
      )
-     console.log("refresh token updated")
      // you can even do search by id then update the user by deleting refresh token
 
      const options = {
@@ -167,30 +166,26 @@ const logoutUser = asyncHandler( async(req, res) => {
      }
 
      return res.status(200)
-     .clearCookie("accessCookie", options)
-     .clearCookie("refreshCookie", options)
+     .clearCookie("accessToken", options)
+     .clearCookie("refreshToken", options)
      .json(new ApiResponse(200, {}, "User logged out"))
 })
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
     const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken
-  console.log("started")
     if (!incomingRefreshToken) {
         throw new ApiError(401, "unauthorized request")
     }
 
     try {
-      console.log("started try block")
        console.log(process.env.REFRESH_TOKEN_SECRET, incomingRefreshToken)
         const decodedToken = jwt.verify(
             incomingRefreshToken,
             process.env.REFRESH_TOKEN_SECRET
         )
     
-
-    console.log("jwt verified")
         const user = await User.findById(decodedToken?._id)
-        console.log("user found" );
+    
         if (!user) {
             throw new ApiError(401, "Invalid refresh token")
         }
@@ -199,7 +194,6 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
             throw new ApiError(401, "Refresh token is expired or used")
             
         }
-        console.log("refresh token matched");
     
         const options = {
             httpOnly: true,
@@ -208,7 +202,6 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     
         const {accessToken, refreshToken} = await generateAccessAndRefreshToken(user._id)
     
-      console.log("new tokens generated");
 
         return res
         .status(200)
@@ -384,7 +377,7 @@ const getUserChannelProfile = asyncHandler(async(req, res) => {
                 },
                 isSubscribed: {
                     $cond: {
-                        if: {$in: [req.user?._id, "$subscribers.subscriber"]},
+                        if: {$in: [req.user?._id, "$subscribers.subscriber"]},  // $subscribers give all and .subscriber give evry subscriber name and than check it by req.user._id
                         then: true,
                         else: false
                     }
